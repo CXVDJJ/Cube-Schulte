@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Diagonal Number Cube</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #87ceeb;
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #111;
+}
+
+.game {
+    width: min(760px, calc(100% - 24px));
+    padding: 20px;
+    background: #87ceeb;
+    border: 2px solid #111;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+
+/* =========================
+   DIFFICULTY
+========================= */
+
+.difficulty-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.difficulty-area label {
+    font-weight: 900;
+}
+
+#difficulty {
+    min-height: 42px;
+    padding: 8px 12px;
+    background: white;
+    color: black;
+    border: 2px solid #111;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+#difficulty:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   HUD
+========================= */
+
+.hud {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.stat {
+    background: white;
+    border: 2px solid #111;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    opacity: 0.65;
+}
+
+.stat-value {
+    display: block;
+    margin-top: 3px;
+    font-size: 19px;
+    font-weight: 900;
+}
+
+
+/* =========================
+   3D SCENE
+========================= */
+
+.scene {
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 950px;
+    overflow: hidden;
+}
+
+
+/* =========================
+   CUBE
+========================= */
+
+.cube {
+    --spin-duration: 13.5s;
+
+    position: relative;
+
+    width: 230px;
+    height: 230px;
+
+    transform-style: preserve-3d;
+
+    animation:
+        diagonalCubeSpin
+        var(--spin-duration)
+        linear
+        infinite;
+
+    animation-play-state: paused;
+}
+
+.cube.running {
+    animation-play-state: running;
+}
+
+
+/* Continuous diagonal rotation */
+
+@keyframes diagonalCubeSpin {
+
+    0% {
+        transform:
+            rotateX(-15deg)
+            rotateY(15deg);
+    }
+
+    16.666% {
+        transform:
+            rotateX(15deg)
+            rotateY(-75deg);
+    }
+
+    33.333% {
+        transform:
+            rotateX(-75deg)
+            rotateY(-165deg);
+    }
+
+    50% {
+        transform:
+            rotateX(15deg)
+            rotateY(-255deg);
+    }
+
+    66.666% {
+        transform:
+            rotateX(-15deg)
+            rotateY(-345deg);
+    }
+
+    83.333% {
+        transform:
+            rotateX(75deg)
+            rotateY(-435deg);
+    }
+
+    100% {
+        transform:
+            rotateX(-15deg)
+            rotateY(-705deg);
+    }
+}
+
+
+/* =========================
+   CUBE FACES
+========================= */
+
+.face {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 10px;
+
+    background: #87ceeb;
+
+    border: 3px solid #111;
+
+    backface-visibility: hidden;
+}
+
+.front {
+    transform:
+        translateZ(115px);
+}
+
+.back {
+    transform:
+        rotateY(180deg)
+        translateZ(115px);
+}
+
+.right {
+    transform:
+        rotateY(90deg)
+        translateZ(115px);
+}
+
+.left {
+    transform:
+        rotateY(-90deg)
+        translateZ(115px);
+}
+
+.top {
+    transform:
+        rotateX(90deg)
+        translateZ(115px);
+}
+
+.bottom {
+    transform:
+        rotateX(-90deg)
+        translateZ(115px);
+}
+
+
+/* =========================
+   FACE HEADER
+========================= */
+
+.face-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 6px;
+
+    margin-bottom: 7px;
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+
+/* =========================
+   NUMBER GRID
+========================= */
+
+.grid {
+    flex: 1;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    grid-template-rows:
+        repeat(3, 1fr);
+
+    gap: 6px;
+}
+
+
+/* =========================
+   NUMBER TILES
+========================= */
+
+.tile {
+    position: relative;
+
+    min-width: 0;
+    min-height: 0;
+
+    padding: 0;
+
+    background: white;
+    color: black;
+
+    border: 2px solid #111;
+
+    font-size: 25px;
+    font-weight: 900;
+
+    cursor: pointer;
+
+    user-select: none;
+    -webkit-user-select: none;
+
+    touch-action: none;
+
+    transition:
+        background-color 90ms linear;
+}
+
+
+/* Orientation dash for 6 and 9 */
+
+.tile[data-number="6"]::after,
+.tile[data-number="9"]::after {
+    content: "";
+
+    position: absolute;
+
+    width: 16px;
+    height: 3px;
+
+    background: #000;
+
+    left: 50%;
+    bottom: 7px;
+
+    transform:
+        translateX(-50%);
+
+    border-radius: 2px;
+}
+
+
+/* Wrong number */
+
+.tile.wrong {
+    background: #ff4747;
+}
+
+
+/* Correct number disappears instantly */
+
+.tile.gone {
+    opacity: 0;
+    pointer-events: none;
+    transition: none;
+}
+
+
+/* Entire face finished */
+
+.face.cleared .grid {
+    opacity: 0.15;
+}
+
+
+/* =========================
+   CONTROLS
+========================= */
+
+.controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 12px;
+}
+
+.control {
+    min-height: 44px;
+
+    padding: 9px 18px;
+
+    background: white;
+    color: #111;
+
+    border: 2px solid #111;
+    border-radius: 9px;
+
+    font-weight: 900;
+
+    cursor: pointer;
+}
+
+.control:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+.message {
+    min-height: 22px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.instructions {
+    margin-top: 5px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 650;
+    opacity: 0.72;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 550px) {
+
+    .hud {
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .scene {
+        height: 340px;
+    }
+
+    .cube {
+        width: 190px;
+        height: 190px;
+    }
+
+    .front {
+        transform:
+            translateZ(95px);
+    }
+
+    .back {
+        transform:
+            rotateY(180deg)
+            translateZ(95px);
+    }
+
+    .right {
+        transform:
+            rotateY(90deg)
+            translateZ(95px);
+    }
+
+    .left {
+        transform:
+            rotateY(-90deg)
+            translateZ(95px);
+    }
+
+    .top {
+        transform:
+            rotateX(90deg)
+            translateZ(95px);
+    }
+
+    .bottom {
+        transform:
+            rotateX(-90deg)
+            translateZ(95px);
+    }
+
+    .tile {
+        font-size: 21px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+    <!-- Difficulty -->
+
+    <div class="difficulty-area">
+
+        <label for="difficulty">
+            Difficulty:
+        </label>
+
+        <select id="difficulty">
+
+            <option value="beginner">
+                Beginner — 4.0s / side
+            </option>
+
+            <option value="intermediate">
+                Intermediate — 3.5s / side
+            </option>
+
+            <option value="pro" selected>
+                Pro — 2.25s / side
+            </option>
+
+            <option value="hardcore">
+                Hardcore — 1.8s / side
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- HUD -->
+
+    <div class="hud">
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Faces Cleared
+            </span>
+
+            <span
+                id="cleared"
+                class="stat-value"
+            >
+                0 / 6
+            </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Time
+            </span>
+
+            <span
+                id="time"
+                class="stat-value"
+            >
+                0.00s
+            </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Difficulty
+            </span>
+
+            <span
+                id="difficultyDisplay"
+                class="stat-value"
+            >
+                Pro
+            </span>
+
+        </div>
+
+
+        <div class="stat">
+
+            <span class="stat-label">
+                Speed
+            </span>
+
+            <span
+                id="speedDisplay"
+                class="stat-value"
+            >
+                2.25s
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Cube -->
+
+    <div class="scene">
+
+        <div
+            id="cube"
+            class="cube"
+        ></div>
+
+    </div>
+
+
+    <!-- Controls -->
+
+    <div class="controls">
+
+        <button
+            id="startButton"
+            class="control"
+            type="button"
+        >
+            Start
+        </button>
+
+
+        <button
+            id="pauseButton"
+            class="control"
+            type="button"
+            disabled
+        >
+            Pause
+        </button>
+
+
+        <button
+            id="restartButton"
+            class="control"
+            type="button"
+        >
+            Restart
+        </button>
+
+    </div>
+
+
+    <div
+        id="message"
+        class="message"
+    >
+        Select a difficulty and press Start.
+    </div>
+
+
+    <div class="instructions">
+
+        Click 1 → 9 in order on every face.
+        Correct numbers disappear instantly.
+        Wrong numbers flash red.
+        6 and 9 have orientation dashes.
+
+    </div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const cube =
+    document.getElementById("cube");
+
+const clearedElement =
+    document.getElementById("cleared");
+
+const timeElement =
+    document.getElementById("time");
+
+const messageElement =
+    document.getElementById("message");
+
+const startButton =
+    document.getElementById("startButton");
+
+const pauseButton =
+    document.getElementById("pauseButton");
+
+const restartButton =
+    document.getElementById("restartButton");
+
+const difficultySelect =
+    document.getElementById("difficulty");
+
+const difficultyDisplay =
+    document.getElementById("difficultyDisplay");
+
+const speedDisplay =
+    document.getElementById("speedDisplay");
+
+
+/* =========================
+   DIFFICULTIES
+========================= */
+
+const difficulties = {
+
+    beginner: {
+        name: "Beginner",
+        secondsPerSide: 4,
+        rotationDuration: 24
+    },
+
+    intermediate: {
+        name: "Intermediate",
+        secondsPerSide: 3.5,
+        rotationDuration: 21
+    },
+
+    pro: {
+        name: "Pro",
+        secondsPerSide: 2.25,
+        rotationDuration: 13.5
+    },
+
+    hardcore: {
+        name: "Hardcore",
+        secondsPerSide: 1.8,
+        rotationDuration: 10.8
+    }
+
+};
+
+
+/* =========================
+   FACE INFO
+========================= */
+
+const faceNames = [
+    "Front",
+    "Right",
+    "Back",
+    "Left",
+    "Top",
+    "Bottom"
+];
+
+const faceClasses = [
+    "front",
+    "right",
+    "back",
+    "left",
+    "top",
+    "bottom"
+];
+
+
+/* =========================
+   GAME STATE
+========================= */
+
+let faces = [];
+
+let started = false;
+let paused = false;
+let finished = false;
+
+let startTime = 0;
+let pausedAt = 0;
+let pausedTotal = 0;
+
+let animationFrame;
+
+
+/* =========================
+   SHUFFLE
+========================= */
+
+function shuffle(array) {
+
+    const copy =
+        [...array];
+
+    for (
+        let i = copy.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(
+                Math.random() *
+                (i + 1)
+            );
+
+        [
+            copy[i],
+            copy[j]
+        ] = [
+            copy[j],
+            copy[i]
+        ];
+
+    }
+
+    return copy;
+}
+
+
+/* =========================
+   DIFFICULTY
+========================= */
+
+function updateDifficulty() {
+
+    const difficulty =
+        difficulties[
+            difficultySelect.value
+        ];
+
+    cube.style.setProperty(
+        "--spin-duration",
+        difficulty.rotationDuration +
+        "s"
+    );
+
+    difficultyDisplay.textContent =
+        difficulty.name;
+
+    speedDisplay.textContent =
+        difficulty.secondsPerSide +
+        "s";
+}
+
+
+/* =========================
+   BUILD CUBE
+========================= */
+
+function buildCube() {
+
+    cube.innerHTML = "";
+
+    faces = [];
+
+
+    faceNames.forEach(
+        (name, index) => {
+
+            const face =
+                document.createElement(
+                    "section"
+                );
+
+            face.className =
+                "face " +
+                faceClasses[index];
+
+
+            const header =
+                document.createElement(
+                    "div"
+                );
+
+            header.className =
+                "face-header";
+
+
+            const title =
+                document.createElement(
+                    "span"
+                );
+
+            title.textContent =
+                name.toUpperCase();
+
+
+            const target =
+                document.createElement(
+                    "span"
+                );
+
+            target.textContent =
+                "NEXT: 1";
+
+
+            header.append(
+                title,
+                target
+            );
+
+
+            const grid =
+                document.createElement(
+                    "div"
+                );
+
+            grid.className =
+                "grid";
+
+
+            const faceData = {
+
+                next: 1,
+
+                cleared: false,
+
+                face: face,
+
+                target: target
+
+            };
+
+
+            const numbers =
+                shuffle([
+                    1, 2, 3,
+                    4, 5, 6,
+                    7, 8, 9
+                ]);
+
+
+            numbers.forEach(
+                number => {
+
+                    const tile =
+                        document.createElement(
+                            "button"
+                        );
+
+                    tile.type =
+                        "button";
+
+                    tile.className =
+                        "tile";
+
+                    tile.textContent =
+                        number;
+
+                    tile.dataset.number =
+                        number;
+
+
+                    /*
+                        IMPORTANT:
+
+                        pointerdown triggers
+                        instantly when the
+                        mouse/finger goes down.
+
+                        It does NOT wait for
+                        mouse release.
+
+                        A small drag afterward
+                        won't cancel the hit.
+                    */
+
+                    tile.addEventListener(
+                        "pointerdown",
+                        event => {
+
+                            event.preventDefault();
+
+                            handleTileClick(
+                                faceData,
+                                tile,
+                                number,
+                                name
+                            );
+
+                        }
+                    );
+
+
+                    grid.appendChild(
+                        tile
+                    );
+
+                }
+            );
+
+
+            face.append(
+                header,
+                grid
+            );
+
+            cube.appendChild(
+                face
+            );
+
+            faces.push(
+                faceData
+            );
+
+        }
+    );
+
+
+    updateCleared();
+}
+
+
+/* =========================
+   NUMBER INPUT
+========================= */
+
+function handleTileClick(
+    faceData,
+    tile,
+    number,
+    faceName
+) {
+
+    if (
+        !started ||
+        paused ||
+        finished ||
+        faceData.cleared ||
+        tile.classList.contains("gone")
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+        CORRECT NUMBER
+    */
+
+    if (
+        number ===
+        faceData.next
+    ) {
+
+        /*
+            Disappear immediately
+        */
+
+        tile.classList.add(
+            "gone"
+        );
+
+        tile.disabled =
+            true;
+
+
+        faceData.next++;
+
+
+        /*
+            FACE COMPLETE
+        */
+
+        if (
+            faceData.next > 9
+        ) {
+
+            faceData.cleared =
+                true;
+
+
+            faceData.face
+                .classList
+                .add(
+                    "cleared"
+                );
+
+
+            faceData.target
+                .textContent =
+                "CLEARED";
+
+
+            messageElement
+                .textContent =
+                faceName +
+                " face cleared.";
+
+
+            updateCleared();
+
+
+            /*
+                ALL FACES COMPLETE
+            */
+
+            if (
+                faces.every(
+                    face =>
+                        face.cleared
+                )
+            ) {
+
+                finishGame();
+
+            }
+
+        }
+
+
+        /*
+            NEXT NUMBER
+        */
+
+        else {
+
+            faceData.target
+                .textContent =
+                "NEXT: " +
+                faceData.next;
+
+        }
+
+    }
+
+
+    /*
+        WRONG NUMBER
+    */
+
+    else {
+
+        tile.classList.remove(
+            "wrong"
+        );
+
+
+        /*
+            Force restart
+            of red animation
+        */
+
+        void tile.offsetWidth;
+
+
+        tile.classList.add(
+            "wrong"
+        );
+
+
+        setTimeout(
+            () => {
+
+                tile.classList.remove(
+                    "wrong"
+                );
+
+            },
+
+            220
+        );
+
+    }
+
+}
+
+
+/* =========================
+   CLEARED COUNT
+========================= */
+
+function updateCleared() {
+
+    const cleared =
+        faces.filter(
+            face =>
+                face.cleared
+        ).length;
+
+
+    clearedElement.textContent =
+        cleared +
+        " / 6";
+}
+
+
+/* =========================
+   TIMER
+========================= */
+
+function updateClock() {
+
+    if (!started) {
+        return;
+    }
+
+
+    if (
+        !paused &&
+        !finished
+    ) {
+
+        const elapsed =
+            (
+                performance.now() -
+                startTime -
+                pausedTotal
+            )
+            /
+            1000;
+
+
+        timeElement.textContent =
+            elapsed.toFixed(2) +
+            "s";
+
+    }
+
+
+    if (!finished) {
+
+        animationFrame =
+            requestAnimationFrame(
+                updateClock
+            );
+
+    }
+
+}
+
+
+/* =========================
+   START
+========================= */
+
+function startGame() {
+
+    if (started) {
+        return;
+    }
+
+
+    started = true;
+
+    paused = false;
+
+    finished = false;
+
+    pausedTotal = 0;
+
+
+    startTime =
+        performance.now();
+
+
+    difficultySelect.disabled =
+        true;
+
+
+    cube.classList.add(
+        "running"
+    );
+
+
+    startButton.disabled =
+        true;
+
+
+    pauseButton.disabled =
+        false;
+
+
+    messageElement.textContent =
+        "Go!";
+
+
+    cancelAnimationFrame(
+        animationFrame
+    );
+
+
+    updateClock();
+}
+
+
+/* =========================
+   PAUSE
+========================= */
+
+function togglePause() {
+
+    if (
+        !started ||
+        finished
+    ) {
+
+        return;
+
+    }
+
+
+    paused =
+        !paused;
+
+
+    if (paused) {
+
+        pausedAt =
+            performance.now();
+
+
+        cube.classList.remove(
+            "running"
+        );
+
+
+        pauseButton.textContent =
+            "Resume";
+
+
+        messageElement.textContent =
+            "Paused.";
+
+    }
+
+    else {
+
+        pausedTotal +=
+            performance.now() -
+            pausedAt;
+
+
+        cube.classList.add(
+            "running"
+        );
+
+
+        pauseButton.textContent =
+            "Pause";
+
+
+        messageElement.textContent =
+            "Go!";
+
+    }
+
+}
+
+
+/* =========================
+   FINISH
+========================= */
+
+function finishGame() {
+
+    finished = true;
+
+
+    cube.classList.remove(
+        "running"
+    );
+
+
+    pauseButton.disabled =
+        true;
+
+
+    cancelAnimationFrame(
+        animationFrame
+    );
+
+
+    const total =
+        (
+            performance.now() -
+            startTime -
+            pausedTotal
+        )
+        /
+        1000;
+
+
+    timeElement.textContent =
+        total.toFixed(2) +
+        "s";
+
+
+    messageElement.textContent =
+        "All 6 faces cleared in " +
+        total.toFixed(2) +
+        " seconds!";
+}
+
+
+/* =========================
+   RESTART
+========================= */
+
+function restartGame() {
+
+    cancelAnimationFrame(
+        animationFrame
+    );
+
+
+    started = false;
+
+    paused = false;
+
+    finished = false;
+
+    pausedTotal = 0;
+
+
+    cube.classList.remove(
+        "running"
+    );
+
+
+    /*
+        Reset cube rotation
+        to the beginning
+    */
+
+    cube.style.animation =
+        "none";
+
+
+    void cube.offsetWidth;
+
+
+    cube.style.animation =
+        "";
+
+
+    updateDifficulty();
+
+
+    difficultySelect.disabled =
+        false;
+
+
+    startButton.disabled =
+        false;
+
+
+    pauseButton.disabled =
+        true;
+
+
+    pauseButton.textContent =
+        "Pause";
+
+
+    timeElement.textContent =
+        "0.00s";
+
+
+    messageElement.textContent =
+        "Select a difficulty and press Start.";
+
+
+    buildCube();
+}
+
+
+/* =========================
+   EVENTS
+========================= */
+
+difficultySelect.addEventListener(
+    "change",
+    updateDifficulty
+);
+
+
+startButton.addEventListener(
+    "click",
+    startGame
+);
+
+
+pauseButton.addEventListener(
+    "click",
+    togglePause
+);
+
+
+restartButton.addEventListener(
+    "click",
+    restartGame
+);
+
+
+/* =========================
+   INITIALIZE
+========================= */
+
+updateDifficulty();
+
+restartGame();
+
+</script>
+
+</body>
+</html>
